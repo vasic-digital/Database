@@ -1,0 +1,53 @@
+# CLAUDE.md - Database Module
+
+## Overview
+
+`digital.vasic.database` is a generic, reusable Go module for relational database operations. It provides driver-agnostic interfaces with PostgreSQL and SQLite adapters, connection pooling, schema migrations, a generic repository pattern, and a fluent query builder.
+
+**Module**: `digital.vasic.database` (Go 1.24+)
+
+## Build & Test
+
+```bash
+go build ./...
+go test ./... -count=1 -race
+go test ./... -short              # Unit tests only
+go test -tags=integration ./...   # Integration tests (requires PostgreSQL)
+go test -bench=. ./...            # Benchmarks
+```
+
+## Code Style
+
+- Standard Go conventions, `gofmt` formatting
+- Imports grouped: stdlib, third-party, internal (blank line separated)
+- Line length <= 100 chars
+- Naming: `camelCase` private, `PascalCase` exported, acronyms all-caps
+- Errors: always check, wrap with `fmt.Errorf("...: %w", err)`
+- Tests: table-driven, `testify`, naming `Test<Struct>_<Method>_<Scenario>`
+
+## Package Structure
+
+| Package | Purpose |
+|---------|---------|
+| `pkg/database` | Core interfaces (Database, Tx, Row, Rows, Result, Config) |
+| `pkg/postgres` | PostgreSQL adapter using pgx/v5 with connection pooling |
+| `pkg/sqlite` | SQLite adapter using modernc.org/sqlite (pure Go, no CGO) |
+| `pkg/pool` | Generic connection pool with metrics and health checking |
+| `pkg/migration` | Schema migration runner with version tracking and rollback |
+| `pkg/repository` | Generic repository pattern with CRUD and listing |
+| `pkg/query` | Fluent SQL query builder with type-safe conditions |
+
+## Key Interfaces
+
+- `database.Database` -- Connect, Close, Exec, Query, QueryRow, Begin, HealthCheck
+- `database.Tx` -- Commit, Rollback, Exec, Query, QueryRow
+- `pool.Pool` -- Acquire, Release, Stats, Close
+- `repository.Repository[T]` -- Create, GetByID, Update, Delete, List, Count
+- `repository.EntityMapper[T]` -- TableName, Columns, ScanRow, InsertSQL, UpdateSQL
+- `query.Condition` -- Build() (sql, args)
+
+## Dependencies
+
+- `github.com/jackc/pgx/v5` -- PostgreSQL driver
+- `modernc.org/sqlite` -- Pure Go SQLite driver
+- `github.com/stretchr/testify` -- Testing assertions
