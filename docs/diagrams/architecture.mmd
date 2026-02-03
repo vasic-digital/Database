@@ -1,0 +1,34 @@
+graph TD
+    subgraph "Core Layer"
+        DB["database<br/><i>Interfaces: Database, Tx, Row, Rows, Result</i><br/><i>Types: Config</i>"]
+    end
+
+    subgraph "Adapter Layer"
+        PG["postgres<br/><i>Client (pgx/v5, pgxpool)</i><br/><i>Types: Config, pgResult, pgRow, pgRows, pgTx</i>"]
+        SQ["sqlite<br/><i>Client (modernc.org/sqlite)</i><br/><i>Types: Config, sqlResult, sqlRow, sqlRows, sqlTx</i>"]
+    end
+
+    subgraph "Data Access Layer"
+        MIG["migration<br/><i>Runner, Migration</i><br/><i>Version tracking, Apply, RollbackWith</i>"]
+        REPO["repository<br/><i>GenericRepository[T]</i><br/><i>EntityMapper[T], ListOptions</i>"]
+    end
+
+    subgraph "Standalone Utilities"
+        POOL["pool<br/><i>GenericPool</i><br/><i>PoolConfig, PoolStats, ConnFactory</i>"]
+        QRY["query<br/><i>Builder</i><br/><i>Condition: Eq, Neq, Gt, Lt, In, And, Or...</i>"]
+    end
+
+    PG -->|implements| DB
+    SQ -->|implements| DB
+    MIG -->|depends on| DB
+    REPO -->|depends on| DB
+
+    PG -.->|uses internally| POOL
+
+    style DB fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
+    style PG fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style SQ fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style MIG fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style REPO fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style POOL fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style QRY fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px

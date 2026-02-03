@@ -1,0 +1,66 @@
+sequenceDiagram
+    participant App as Application
+    participant Repo as GenericRepository[T]
+    participant Mapper as EntityMapper[T]
+    participant DB as database.Database
+    participant Adapter as postgres.Client / sqlite.Client
+    participant Driver as pgxpool.Pool / sql.DB
+
+    Note over App,Driver: Query Execution Flow (List with filters)
+
+    App->>Repo: List(ctx, ListOptions)
+    Repo->>Mapper: Columns()
+    Mapper-->>Repo: ["id", "name", "email"]
+    Repo->>Mapper: TableName()
+    Mapper-->>Repo: "users"
+
+    Note over Repo: Build SQL: SELECT id, name, email FROM users
+
+    Repo->>Repo: opts.BuildWhereSQL()
+    Note over Repo: Append WHERE, ORDER BY, LIMIT, OFFSET
+
+    Repo->>DB: Query(ctx, sql, args...)
+    DB->>Adapter: Query(ctx, sql, args...)
+    Adapter->>Driver: Query/QueryContext(ctx, sql, args...)
+    Driver-->>Adapter: driver-specific rows
+    Adapter-->>DB: database.Rows (wrapped)
+    DB-->>Repo: database.Rows
+
+    loop For each row
+        Repo->>Repo: rows.Next()
+        Repo->>Mapper: ScanRows(rows)
+        Mapper->>Repo: rows.Scan(&fields...)
+        Mapper-->>Repo: *T entity
+        Repo->>Repo: append to results
+    end
+
+    Repo->>Repo: rows.Close()
+    Repo->>Repo: rows.Err()
+    Repo-->>App: []T, nil
+
+    Note over App,Driver: Transaction Flow (Create)
+
+    App->>Repo: Create(ctx, &entity)
+    Repo->>Mapper: InsertSQL(&entity)
+    Mapper-->>Repo: sql, args
+    Repo->>DB: Exec(ctx, sql, args...)
+    DB->>Adapter: Exec(ctx, sql, args...)
+    Adapter->>Driver: Exec/ExecContext(ctx, sql, args...)
+    Driver-->>Adapter: command tag / sql.Result
+    Adapter-->>DB: database.Result (wrapped)
+    DB-->>Repo: database.Result
+    Repo-->>App: nil
+
+    Note over App,Driver: Migration Apply Flow
+
+    App->>App: migration.NewRunner(db, "")
+    App->>DB: Runner.Apply(ctx, migrations)
+    DB->>DB: Runner.Init(ctx) - CREATE TABLE IF NOT EXISTS
+    DB->>DB: Runner.Applied(ctx) - SELECT version
+    loop For each pending migration
+        DB->>DB: Begin(ctx) -> Tx
+        DB->>DB: Tx.Exec(ctx, migration.Up)
+        DB->>DB: Tx.Exec(ctx, INSERT INTO schema_migrations)
+        DB->>DB: Tx.Commit(ctx)
+    end
+    DB-->>App: nil

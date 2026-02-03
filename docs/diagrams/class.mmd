@@ -1,0 +1,252 @@
+classDiagram
+    class Database {
+        <<interface>>
+        +Connect(ctx context.Context) error
+        +Close() error
+        +Exec(ctx context.Context, query string, args ...any) Result, error
+        +Query(ctx context.Context, query string, args ...any) Rows, error
+        +QueryRow(ctx context.Context, query string, args ...any) Row
+        +Begin(ctx context.Context) Tx, error
+        +HealthCheck(ctx context.Context) error
+    }
+
+    class Tx {
+        <<interface>>
+        +Commit(ctx context.Context) error
+        +Rollback(ctx context.Context) error
+        +Exec(ctx context.Context, query string, args ...any) Result, error
+        +Query(ctx context.Context, query string, args ...any) Rows, error
+        +QueryRow(ctx context.Context, query string, args ...any) Row
+    }
+
+    class Row {
+        <<interface>>
+        +Scan(dest ...any) error
+    }
+
+    class Rows {
+        <<interface>>
+        +Next() bool
+        +Scan(dest ...any) error
+        +Close() error
+        +Err() error
+    }
+
+    class Result {
+        <<interface>>
+        +RowsAffected() int64, error
+    }
+
+    class Config {
+        +Driver string
+        +Host string
+        +Port int
+        +User string
+        +Password string
+        +DBName string
+        +SSLMode string
+        +MaxConns int32
+        +MinConns int32
+        +MaxConnLifetime time.Duration
+        +MaxConnIdleTime time.Duration
+        +ConnectTimeout time.Duration
+        +DSN() string
+        +Validate() error
+    }
+
+    class PostgresClient {
+        -pool *pgxpool.Pool
+        -config *postgres.Config
+        +Connect(ctx) error
+        +Close() error
+        +Exec(ctx, query, args) Result, error
+        +Query(ctx, query, args) Rows, error
+        +QueryRow(ctx, query, args) Row
+        +Begin(ctx) Tx, error
+        +HealthCheck(ctx) error
+        +Pool() *pgxpool.Pool
+        +Migrate(ctx, migrations) error
+    }
+
+    class PostgresConfig {
+        +Config database.Config
+        +ApplicationName string
+        +HealthCheckPeriod time.Duration
+        +PreferSimpleProtocol bool
+        +StatementCacheCapacity int
+    }
+
+    class SQLiteClient {
+        -db *sql.DB
+        -config *sqlite.Config
+        +Connect(ctx) error
+        +Close() error
+        +Exec(ctx, query, args) Result, error
+        +Query(ctx, query, args) Rows, error
+        +QueryRow(ctx, query, args) Row
+        +Begin(ctx) Tx, error
+        +HealthCheck(ctx) error
+        +DB() *sql.DB
+    }
+
+    class SQLiteConfig {
+        +Path string
+        +JournalMode string
+        +BusyTimeout time.Duration
+        +MaxOpenConns int
+        +MaxIdleConns int
+        +ConnMaxLifetime time.Duration
+    }
+
+    class Pool {
+        <<interface>>
+        +Acquire(ctx context.Context) Conn, error
+        +Release(conn Conn)
+        +Stats() PoolStats
+        +Close() error
+    }
+
+    class GenericPool {
+        -config *PoolConfig
+        -factory ConnFactory
+        -checker ConnHealthChecker
+        -closer ConnCloser
+        -idle []*managedConn
+        -sem chan struct
+        +Acquire(ctx) Conn, error
+        +Release(conn Conn)
+        +Stats() PoolStats
+        +Close() error
+    }
+
+    class PoolConfig {
+        +MaxSize int
+        +MinSize int
+        +MaxLifetime time.Duration
+        +MaxIdleTime time.Duration
+        +HealthCheckInterval time.Duration
+        +AcquireTimeout time.Duration
+        +Validate() error
+    }
+
+    class PoolStats {
+        +TotalConns int64
+        +IdleConns int64
+        +AcquiredConns int64
+        +AcquireCount int64
+        +AcquireErrors int64
+        +MaxConcurrent int64
+        +TotalAcquireTimeUs int64
+        +AverageAcquireTime() time.Duration
+    }
+
+    class Runner {
+        -db database.Database
+        -table string
+        +Init(ctx) error
+        +Applied(ctx) []int, error
+        +Apply(ctx, migrations) error
+        +Rollback(ctx, version) error
+        +RollbackWith(ctx, version, migrations) error
+    }
+
+    class Migration {
+        +Version int
+        +Name string
+        +Up string
+        +Down string
+    }
+
+    class Repository_T_ {
+        <<interface>>
+        +Create(ctx, entity *T) error
+        +GetByID(ctx, id any) *T, error
+        +Update(ctx, entity *T) error
+        +Delete(ctx, id any) error
+        +List(ctx, opts ListOptions) []T, error
+        +Count(ctx, opts ListOptions) int64, error
+    }
+
+    class EntityMapper_T_ {
+        <<interface>>
+        +TableName() string
+        +Columns() []string
+        +ScanRow(row Row) *T, error
+        +ScanRows(rows Rows) *T, error
+        +InsertSQL(entity *T) string, []any
+        +UpdateSQL(entity *T) string, []any
+        +PrimaryKeyColumn() string
+    }
+
+    class GenericRepository_T_ {
+        +DB database.Database
+        +Mapper EntityMapper_T_
+        +Create(ctx, entity *T) error
+        +GetByID(ctx, id any) *T, error
+        +Update(ctx, entity *T) error
+        +Delete(ctx, id any) error
+        +List(ctx, opts ListOptions) []T, error
+        +Count(ctx, opts ListOptions) int64, error
+    }
+
+    class ListOptions {
+        +Offset int
+        +Limit int
+        +OrderBy string
+        +Where []WhereClause
+        +BuildWhereSQL() string, []any
+    }
+
+    class Builder {
+        -selectCols []string
+        -from string
+        -conditions []Condition
+        -orderBy string
+        -limit int
+        -offset int
+        -groupBy string
+        -having []Condition
+        +Select(cols ...string) *Builder
+        +From(table string) *Builder
+        +Where(c Condition) *Builder
+        +OrderBy(expr string) *Builder
+        +Limit(n int) *Builder
+        +Offset(n int) *Builder
+        +GroupBy(expr string) *Builder
+        +Having(c Condition) *Builder
+        +Build() string, []any
+    }
+
+    class Condition {
+        <<interface>>
+        +Build() string, []any
+    }
+
+    Database --> Tx : Begin returns
+    Database --> Rows : Query returns
+    Database --> Row : QueryRow returns
+    Database --> Result : Exec returns
+    Tx --> Rows : Query returns
+    Tx --> Row : QueryRow returns
+    Tx --> Result : Exec returns
+
+    PostgresClient ..|> Database : implements
+    SQLiteClient ..|> Database : implements
+    PostgresConfig --> Config : embeds
+    PostgresClient --> PostgresConfig : uses
+
+    SQLiteClient --> SQLiteConfig : uses
+
+    GenericPool ..|> Pool : implements
+    GenericPool --> PoolConfig : uses
+    GenericPool --> PoolStats : produces
+
+    Runner --> Database : uses
+    Runner --> Migration : applies
+
+    GenericRepository_T_ ..|> Repository_T_ : implements
+    GenericRepository_T_ --> Database : uses
+    GenericRepository_T_ --> EntityMapper_T_ : uses
+    GenericRepository_T_ --> ListOptions : accepts
+
+    Builder --> Condition : aggregates
