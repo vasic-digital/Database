@@ -1,0 +1,354 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>sqlite: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">digital.vasic.database/pkg/sqlite/sqlite.go (95.9%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">// Package sqlite provides a SQLite implementation of the database.Database
+// interface using modernc.org/sqlite (pure Go, no CGO).
+package sqlite
+
+import (
+        "context"
+        "database/sql"
+        "fmt"
+        "time"
+
+        _ "modernc.org/sqlite" // Pure Go SQLite driver
+
+        db "digital.vasic.database/pkg/database"
+)
+
+// Client implements database.Database for SQLite.
+type Client struct {
+        db     *sql.DB
+        config *Config
+}
+
+// Config holds SQLite-specific configuration.
+type Config struct {
+        // Path is the database file path. Use ":memory:" for in-memory.
+        Path string
+
+        // JournalMode controls the journal mode (e.g. "WAL", "DELETE").
+        JournalMode string
+
+        // BusyTimeout is the timeout in milliseconds when the database is
+        // locked.
+        BusyTimeout time.Duration
+
+        // MaxOpenConns limits the number of open connections.
+        MaxOpenConns int
+
+        // MaxIdleConns limits the number of idle connections.
+        MaxIdleConns int
+
+        // ConnMaxLifetime is the maximum lifetime of a connection.
+        ConnMaxLifetime time.Duration
+}
+
+// DefaultConfig returns a Config with sensible defaults.
+func DefaultConfig(path string) *Config <span class="cov8" title="1">{
+        return &amp;Config{
+                Path:            path,
+                JournalMode:     "WAL",
+                BusyTimeout:     5 * time.Second,
+                MaxOpenConns:    1,
+                MaxIdleConns:    1,
+                ConnMaxLifetime: time.Hour,
+        }
+}</span>
+
+// New creates a new SQLite client.
+func New(cfg *Config) *Client <span class="cov8" title="1">{
+        if cfg == nil </span><span class="cov8" title="1">{
+                cfg = DefaultConfig(":memory:")
+        }</span>
+        <span class="cov8" title="1">return &amp;Client{config: cfg}</span>
+}
+
+// Connect opens the SQLite database and applies pragmas.
+func (c *Client) Connect(ctx context.Context) error <span class="cov8" title="1">{
+        dsn := c.config.Path
+        if dsn == "" </span><span class="cov8" title="1">{
+                dsn = ":memory:"
+        }</span>
+
+        <span class="cov8" title="1">sdb, err := sql.Open("sqlite", dsn)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("open sqlite: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">if c.config.MaxOpenConns &gt; 0 </span><span class="cov8" title="1">{
+                sdb.SetMaxOpenConns(c.config.MaxOpenConns)
+        }</span>
+        <span class="cov8" title="1">if c.config.MaxIdleConns &gt; 0 </span><span class="cov8" title="1">{
+                sdb.SetMaxIdleConns(c.config.MaxIdleConns)
+        }</span>
+        <span class="cov8" title="1">if c.config.ConnMaxLifetime &gt; 0 </span><span class="cov8" title="1">{
+                sdb.SetConnMaxLifetime(c.config.ConnMaxLifetime)
+        }</span>
+
+        // Apply pragmas.
+        <span class="cov8" title="1">pragmas := []string{
+                fmt.Sprintf("PRAGMA journal_mode=%s", c.journalMode()),
+                fmt.Sprintf("PRAGMA busy_timeout=%d", c.busyTimeoutMs()),
+                "PRAGMA foreign_keys=ON",
+                "PRAGMA synchronous=NORMAL",
+        }
+        for _, p := range pragmas </span><span class="cov8" title="1">{
+                if _, err := sdb.ExecContext(ctx, p); err != nil </span><span class="cov8" title="1">{
+                        _ = sdb.Close()
+                        return fmt.Errorf("pragma %q: %w", p, err)
+                }</span>
+        }
+
+        <span class="cov8" title="1">if err := sdb.PingContext(ctx); err != nil </span><span class="cov0" title="0">{
+                _ = sdb.Close()
+                return fmt.Errorf("ping sqlite: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">c.db = sdb
+        return nil</span>
+}
+
+// Close closes the database connection.
+func (c *Client) Close() error <span class="cov8" title="1">{
+        if c.db != nil </span><span class="cov8" title="1">{
+                err := c.db.Close()
+                c.db = nil
+                return err
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+// Exec executes a query that does not return rows.
+func (c *Client) Exec(
+        ctx context.Context, query string, args ...any,
+) (db.Result, error) <span class="cov8" title="1">{
+        res, err := c.db.ExecContext(ctx, query, args...)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("exec: %w", err)
+        }</span>
+        <span class="cov8" title="1">return &amp;sqlResult{result: res}, nil</span>
+}
+
+// Query executes a query that returns rows.
+func (c *Client) Query(
+        ctx context.Context, query string, args ...any,
+) (db.Rows, error) <span class="cov8" title="1">{
+        rows, err := c.db.QueryContext(ctx, query, args...)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("query: %w", err)
+        }</span>
+        <span class="cov8" title="1">return &amp;sqlRows{rows: rows}, nil</span>
+}
+
+// QueryRow executes a query that returns at most one row.
+func (c *Client) QueryRow(
+        ctx context.Context, query string, args ...any,
+) db.Row <span class="cov8" title="1">{
+        return &amp;sqlRow{row: c.db.QueryRowContext(ctx, query, args...)}
+}</span>
+
+// Begin starts a new transaction.
+func (c *Client) Begin(ctx context.Context) (db.Tx, error) <span class="cov8" title="1">{
+        tx, err := c.db.BeginTx(ctx, nil)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("begin transaction: %w", err)
+        }</span>
+        <span class="cov8" title="1">return &amp;sqlTx{tx: tx}, nil</span>
+}
+
+// HealthCheck pings the database.
+func (c *Client) HealthCheck(ctx context.Context) error <span class="cov8" title="1">{
+        if c.db == nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("sqlite: database not connected")
+        }</span>
+        <span class="cov8" title="1">ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+        defer cancel()
+        return c.db.PingContext(ctx)</span>
+}
+
+// DB returns the underlying *sql.DB for advanced operations.
+func (c *Client) DB() *sql.DB <span class="cov8" title="1">{
+        return c.db
+}</span>
+
+func (c *Client) journalMode() string <span class="cov8" title="1">{
+        if c.config.JournalMode != "" </span><span class="cov8" title="1">{
+                return c.config.JournalMode
+        }</span>
+        <span class="cov8" title="1">return "WAL"</span>
+}
+
+func (c *Client) busyTimeoutMs() int64 <span class="cov8" title="1">{
+        if c.config.BusyTimeout &gt; 0 </span><span class="cov8" title="1">{
+                return c.config.BusyTimeout.Milliseconds()
+        }</span>
+        <span class="cov8" title="1">return 5000</span>
+}
+
+// sqlResult wraps sql.Result to implement database.Result.
+type sqlResult struct {
+        result sql.Result
+}
+
+func (r *sqlResult) RowsAffected() (int64, error) <span class="cov8" title="1">{
+        return r.result.RowsAffected()
+}</span>
+
+// sqlRow wraps *sql.Row to implement database.Row.
+type sqlRow struct {
+        row *sql.Row
+}
+
+func (r *sqlRow) Scan(dest ...any) error <span class="cov8" title="1">{
+        return r.row.Scan(dest...)
+}</span>
+
+// sqlRows wraps *sql.Rows to implement database.Rows.
+type sqlRows struct {
+        rows *sql.Rows
+}
+
+func (r *sqlRows) Next() bool           <span class="cov8" title="1">{ return r.rows.Next() }</span>
+func (r *sqlRows) Scan(dest ...any) error <span class="cov8" title="1">{ return r.rows.Scan(dest...) }</span>
+func (r *sqlRows) Close() error          <span class="cov8" title="1">{ return r.rows.Close() }</span>
+func (r *sqlRows) Err() error            <span class="cov8" title="1">{ return r.rows.Err() }</span>
+
+// sqlTx wraps *sql.Tx to implement database.Tx.
+type sqlTx struct {
+        tx *sql.Tx
+}
+
+func (t *sqlTx) Commit(_ context.Context) error <span class="cov8" title="1">{
+        return t.tx.Commit()
+}</span>
+
+func (t *sqlTx) Rollback(_ context.Context) error <span class="cov8" title="1">{
+        return t.tx.Rollback()
+}</span>
+
+func (t *sqlTx) Exec(
+        ctx context.Context, query string, args ...any,
+) (db.Result, error) <span class="cov8" title="1">{
+        res, err := t.tx.ExecContext(ctx, query, args...)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("tx exec: %w", err)
+        }</span>
+        <span class="cov8" title="1">return &amp;sqlResult{result: res}, nil</span>
+}
+
+func (t *sqlTx) Query(
+        ctx context.Context, query string, args ...any,
+) (db.Rows, error) <span class="cov8" title="1">{
+        rows, err := t.tx.QueryContext(ctx, query, args...)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("tx query: %w", err)
+        }</span>
+        <span class="cov8" title="1">return &amp;sqlRows{rows: rows}, nil</span>
+}
+
+func (t *sqlTx) QueryRow(
+        ctx context.Context, query string, args ...any,
+) db.Row <span class="cov8" title="1">{
+        return &amp;sqlRow{row: t.tx.QueryRowContext(ctx, query, args...)}
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

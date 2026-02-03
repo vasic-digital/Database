@@ -15,9 +15,38 @@ import (
 	db "digital.vasic.database/pkg/database"
 )
 
+// pooler abstracts pgxpool.Pool operations for testing.
+type pooler interface {
+	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	Begin(ctx context.Context) (pgx.Tx, error)
+	Ping(ctx context.Context) error
+	Close()
+}
+
+// poolCreator is a function type for creating connection pools.
+// It returns both a pooler interface (for internal use) and an optional
+// *pgxpool.Pool (for the Pool() method's backward compatibility).
+type poolCreator func(ctx context.Context, cfg *pgxpool.Config) (pooler, *pgxpool.Pool, error)
+
+// defaultPoolCreator creates a real pgxpool.Pool.
+var defaultPoolCreator poolCreator = func(ctx context.Context, cfg *pgxpool.Config) (pooler, *pgxpool.Pool, error) {
+	pool, err := pgxpool.NewWithConfig(ctx, cfg)
+	if err != nil {
+		return nil, nil, err
+	}
+	return pool, pool, nil
+}
+
+// createPool is the function used to create connection pools.
+// It can be replaced in tests to inject mock pools.
+var createPool = defaultPoolCreator
+
 // Client implements database.Database for PostgreSQL.
 type Client struct {
-	pool   *pgxpool.Pool
+	pool   pooler
+	pgPool *pgxpool.Pool // Kept for Pool() method backward compatibility
 	config *Config
 }
 
@@ -40,9 +69,9 @@ type Config struct {
 	StatementCacheCapacity int
 }
 
-// DefaultConfig returns a Config with sensible defaults.
-func DefaultConfig() *Config {
-	cpuCount := int32(runtime.NumCPU())
+// calculateMaxConns computes the maximum connections based on CPU count,
+// clamped to the range [10, 50].
+func calculateMaxConns(cpuCount int32) int32 {
 	maxConns := cpuCount*2 + 1
 	if maxConns < 10 {
 		maxConns = 10
@@ -50,14 +79,19 @@ func DefaultConfig() *Config {
 	if maxConns > 50 {
 		maxConns = 50
 	}
+	return maxConns
+}
 
+// DefaultConfig returns a Config with sensible defaults.
+func DefaultConfig() *Config {
+	cpuCount := int32(runtime.NumCPU())
 	return &Config{
 		Config: db.Config{
 			Driver:          "postgres",
 			Host:            "localhost",
 			Port:            5432,
 			SSLMode:         "disable",
-			MaxConns:        maxConns,
+			MaxConns:        calculateMaxConns(cpuCount),
 			MinConns:        cpuCount / 2,
 			MaxConnLifetime: time.Hour,
 			MaxConnIdleTime: 30 * time.Minute,
@@ -87,7 +121,7 @@ func (c *Client) Connect(ctx context.Context) error {
 		return fmt.Errorf("build pool config: %w", err)
 	}
 
-	pool, err := pgxpool.NewWithConfig(ctx, poolCfg)
+	pool, pgPool, err := createPool(ctx, poolCfg)
 	if err != nil {
 		return fmt.Errorf("create connection pool: %w", err)
 	}
@@ -98,6 +132,7 @@ func (c *Client) Connect(ctx context.Context) error {
 	}
 
 	c.pool = pool
+	c.pgPool = pgPool
 	return nil
 }
 
@@ -106,6 +141,7 @@ func (c *Client) Close() error {
 	if c.pool != nil {
 		c.pool.Close()
 		c.pool = nil
+		c.pgPool = nil
 	}
 	return nil
 }
@@ -157,7 +193,7 @@ func (c *Client) HealthCheck(ctx context.Context) error {
 
 // Pool returns the underlying pgxpool.Pool for advanced operations.
 func (c *Client) Pool() *pgxpool.Pool {
-	return c.pool
+	return c.pgPool
 }
 
 // Migrate applies a list of SQL migration statements sequentially.
@@ -229,10 +265,10 @@ type pgRows struct {
 	rows pgx.Rows
 }
 
-func (r *pgRows) Next() bool        { return r.rows.Next() }
+func (r *pgRows) Next() bool             { return r.rows.Next() }
 func (r *pgRows) Scan(dest ...any) error { return r.rows.Scan(dest...) }
-func (r *pgRows) Close() error      { r.rows.Close(); return nil }
-func (r *pgRows) Err() error        { return r.rows.Err() }
+func (r *pgRows) Close() error           { r.rows.Close(); return nil }
+func (r *pgRows) Err() error             { return r.rows.Err() }
 
 // pgTx wraps pgx.Tx to implement database.Tx.
 type pgTx struct {

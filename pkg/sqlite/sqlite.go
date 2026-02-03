@@ -13,10 +13,28 @@ import (
 	db "digital.vasic.database/pkg/database"
 )
 
+// SQLOpener defines an interface for opening SQL database connections.
+// This allows for dependency injection during testing.
+type SQLOpener interface {
+	Open(driverName, dataSourceName string) (*sql.DB, error)
+}
+
+// DefaultSQLOpener is the default implementation using database/sql.
+type DefaultSQLOpener struct{}
+
+// Open opens a database connection using the standard sql.Open.
+func (d DefaultSQLOpener) Open(driverName, dataSourceName string) (*sql.DB, error) {
+	return sql.Open(driverName, dataSourceName)
+}
+
+// defaultOpener is the package-level opener used by Connect.
+var defaultOpener SQLOpener = DefaultSQLOpener{}
+
 // Client implements database.Database for SQLite.
 type Client struct {
 	db     *sql.DB
 	config *Config
+	opener SQLOpener // injected for testing; if nil, uses defaultOpener
 }
 
 // Config holds SQLite-specific configuration.
@@ -58,7 +76,13 @@ func New(cfg *Config) *Client {
 	if cfg == nil {
 		cfg = DefaultConfig(":memory:")
 	}
-	return &Client{config: cfg}
+	return &Client{config: cfg, opener: nil}
+}
+
+// WithOpener sets a custom SQLOpener for the client (used for testing).
+func (c *Client) WithOpener(opener SQLOpener) *Client {
+	c.opener = opener
+	return c
 }
 
 // Connect opens the SQLite database and applies pragmas.
@@ -68,7 +92,12 @@ func (c *Client) Connect(ctx context.Context) error {
 		dsn = ":memory:"
 	}
 
-	sdb, err := sql.Open("sqlite", dsn)
+	opener := c.opener
+	if opener == nil {
+		opener = defaultOpener
+	}
+
+	sdb, err := opener.Open("sqlite", dsn)
 	if err != nil {
 		return fmt.Errorf("open sqlite: %w", err)
 	}

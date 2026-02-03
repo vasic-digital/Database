@@ -248,3 +248,48 @@ func TestBuilder_Chaining(t *testing.T) {
 		assert.Same(t, b, b2)
 	})
 }
+
+func TestBuilder_MultipleHavingClauses(t *testing.T) {
+	tests := []struct {
+		name     string
+		build    func() *Builder
+		wantSQL  string
+		wantArgs []any
+	}{
+		{
+			name: "multiple having clauses with AND",
+			build: func() *Builder {
+				return New().
+					Select("department", "COUNT(*) as cnt", "AVG(salary) as avg_sal").
+					From("employees").
+					GroupBy("department").
+					Having(Gt("COUNT(*)", 5)).
+					Having(Lt("AVG(salary)", 100000))
+			},
+			wantSQL:  "SELECT department, COUNT(*) as cnt, AVG(salary) as avg_sal FROM employees GROUP BY department HAVING COUNT(*) > ? AND AVG(salary) < ?",
+			wantArgs: []any{5, 100000},
+		},
+		{
+			name: "three having clauses",
+			build: func() *Builder {
+				return New().
+					Select("category", "SUM(amount) as total").
+					From("transactions").
+					GroupBy("category").
+					Having(Gte("SUM(amount)", 1000)).
+					Having(Lte("SUM(amount)", 50000)).
+					Having(Gt("COUNT(*)", 10))
+			},
+			wantSQL:  "SELECT category, SUM(amount) as total FROM transactions GROUP BY category HAVING SUM(amount) >= ? AND SUM(amount) <= ? AND COUNT(*) > ?",
+			wantArgs: []any{1000, 50000, 10},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sql, args := tt.build().Build()
+			assert.Equal(t, tt.wantSQL, sql)
+			assert.Equal(t, tt.wantArgs, args)
+		})
+	}
+}
