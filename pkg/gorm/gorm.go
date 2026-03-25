@@ -1,7 +1,7 @@
 // Package gorm provides a GORM adapter for the database module, wrapping a
 // *gorm.DB instance with connection pool configuration, health checking, and
-// transaction helpers. This adapter is intended for use in Bear Messenger's
-// backend where GORM is the primary ORM.
+// transaction helpers. This adapter provides generic database access for
+// any backend where GORM is the primary ORM.
 package gorm
 
 import (
