@@ -30,3 +30,8 @@ Thumbs.db
 *.tmp
 *.db
 *.sqlite
+
+# Environment files
+.env
+.env.local
+.env.*.local
