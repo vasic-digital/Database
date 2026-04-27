@@ -18,7 +18,7 @@ import (
 
 func TestStress_ConcurrentInserts(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping stress test in short mode")
+		t.Skip("skipping stress test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	client := sqlite.New(&sqlite.Config{
@@ -75,7 +75,7 @@ func TestStress_ConcurrentInserts(t *testing.T) {
 
 func TestStress_ConcurrentReads(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping stress test in short mode")
+		t.Skip("skipping stress test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	client := sqlite.New(sqlite.DefaultConfig(":memory:"))
@@ -121,7 +121,7 @@ func TestStress_ConcurrentReads(t *testing.T) {
 
 func TestStress_ConcurrentTransactions(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping stress test in short mode")
+		t.Skip("skipping stress test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	client := sqlite.New(&sqlite.Config{
@@ -184,7 +184,7 @@ func TestStress_ConcurrentTransactions(t *testing.T) {
 
 func TestStress_ConcurrentPoolAcquireRelease(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping stress test in short mode")
+		t.Skip("skipping stress test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	var connID atomic.Int64
@@ -241,7 +241,7 @@ func TestStress_ConcurrentPoolAcquireRelease(t *testing.T) {
 
 func TestStress_ConcurrentQueryBuilding(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping stress test in short mode")
+		t.Skip("skipping stress test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	const goroutines = 100
@@ -280,7 +280,7 @@ func TestStress_ConcurrentQueryBuilding(t *testing.T) {
 
 func TestStress_ConcurrentHealthChecks(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping stress test in short mode")
+		t.Skip("skipping stress test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	client := sqlite.New(sqlite.DefaultConfig(":memory:"))

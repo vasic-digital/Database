@@ -351,7 +351,7 @@ func TestClient_BusyTimeoutMs(t *testing.T) {
 // file permission issues.
 func TestClient_Connect_FilePermissionError(t *testing.T) {
 	if os.Getuid() == 0 {
-		t.Skip("skipping permission test when running as root")
+		t.Skip("skipping permission test when running as root")  // SKIP-OK: #legacy-untriaged
 	}
 
 	tests := []struct {
