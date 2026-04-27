@@ -17,7 +17,7 @@ import (
 
 func TestSQLite_ConnectAndQuery_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping integration test in short mode")
+		t.Skip("skipping integration test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	client := sqlite.New(sqlite.DefaultConfig(":memory:"))
@@ -75,7 +75,7 @@ func TestSQLite_ConnectAndQuery_Integration(t *testing.T) {
 
 func TestSQLite_Transactions_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping integration test in short mode")
+		t.Skip("skipping integration test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	client := sqlite.New(sqlite.DefaultConfig(":memory:"))
@@ -134,7 +134,7 @@ func TestSQLite_Transactions_Integration(t *testing.T) {
 
 func TestMigration_ApplyAndRollback_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping integration test in short mode")
+		t.Skip("skipping integration test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	client := sqlite.New(sqlite.DefaultConfig(":memory:"))
@@ -181,7 +181,7 @@ func TestMigration_ApplyAndRollback_Integration(t *testing.T) {
 
 func TestQueryBuilder_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping integration test in short mode")
+		t.Skip("skipping integration test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	client := sqlite.New(sqlite.DefaultConfig(":memory:"))
@@ -244,7 +244,7 @@ func TestQueryBuilder_Integration(t *testing.T) {
 
 func TestPoolConfig_Validation_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping integration test in short mode")
+		t.Skip("skipping integration test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	// Valid config
@@ -262,7 +262,7 @@ func TestPoolConfig_Validation_Integration(t *testing.T) {
 
 func TestDatabaseConfig_Validation_Integration(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping integration test in short mode")
+		t.Skip("skipping integration test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	// Valid postgres config

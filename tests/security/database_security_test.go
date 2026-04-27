@@ -17,7 +17,7 @@ import (
 
 func TestSecurity_SQLInjection_Parameterized(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	client := sqlite.New(sqlite.DefaultConfig(":memory:"))
@@ -62,7 +62,7 @@ func TestSecurity_SQLInjection_Parameterized(t *testing.T) {
 
 func TestSecurity_QueryBuilder_InjectionResistance(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	client := sqlite.New(sqlite.DefaultConfig(":memory:"))
@@ -115,7 +115,7 @@ func TestSecurity_QueryBuilder_InjectionResistance(t *testing.T) {
 
 func TestSecurity_NilClient_Operations(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	client := sqlite.New(sqlite.DefaultConfig(":memory:"))
@@ -132,7 +132,7 @@ func TestSecurity_NilClient_Operations(t *testing.T) {
 
 func TestSecurity_ConfigValidation(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	invalidConfigs := []struct {
@@ -158,7 +158,7 @@ func TestSecurity_ConfigValidation(t *testing.T) {
 
 func TestSecurity_PoolNilCallbacks(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	cfg := pool.DefaultPoolConfig()
@@ -178,7 +178,7 @@ func TestSecurity_PoolNilCallbacks(t *testing.T) {
 
 func TestSecurity_PoolConfigValidation(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	tests := []struct {
@@ -203,7 +203,7 @@ func TestSecurity_PoolConfigValidation(t *testing.T) {
 
 func TestSecurity_LargeStringValues(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	client := sqlite.New(sqlite.DefaultConfig(":memory:"))
@@ -229,7 +229,7 @@ func TestSecurity_LargeStringValues(t *testing.T) {
 
 func TestSecurity_QueryBuilder_EmptyIn(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping security test in short mode")
+		t.Skip("skipping security test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	// Empty IN clause should produce a safe always-false condition

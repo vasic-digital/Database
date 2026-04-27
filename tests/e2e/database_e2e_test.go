@@ -18,7 +18,7 @@ import (
 
 func TestEndToEnd_FullDatabaseWorkflow(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping e2e test in short mode")
+		t.Skip("skipping e2e test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	client := sqlite.New(sqlite.DefaultConfig(":memory:"))
@@ -113,7 +113,7 @@ func TestEndToEnd_FullDatabaseWorkflow(t *testing.T) {
 
 func TestEndToEnd_QueryBuilder_ComplexQueries(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping e2e test in short mode")
+		t.Skip("skipping e2e test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	client := sqlite.New(sqlite.DefaultConfig(":memory:"))
@@ -205,7 +205,7 @@ func TestEndToEnd_QueryBuilder_ComplexQueries(t *testing.T) {
 
 func TestEndToEnd_ConnectionPool(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping e2e test in short mode")
+		t.Skip("skipping e2e test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	cfg := &pool.PoolConfig{
@@ -257,7 +257,7 @@ func TestEndToEnd_ConnectionPool(t *testing.T) {
 
 func TestEndToEnd_ConfigDSN(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping e2e test in short mode")
+		t.Skip("skipping e2e test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	cfg := &database.Config{
@@ -288,7 +288,7 @@ func TestEndToEnd_ConfigDSN(t *testing.T) {
 
 func TestEndToEnd_PoolStats(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping e2e test in short mode")
+		t.Skip("skipping e2e test in short mode")  // SKIP-OK: #short-mode
 	}
 
 	stats := pool.PoolStats{

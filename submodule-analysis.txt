@@ -1,0 +1,8 @@
+Commit: 28ef6fc5480b1299a7848e4b1744a4fb34ce5dfb
+Branch: main
+28ef6fc Merge gitlab/main into main (absorb ARCHITECTURE.md + edge tests)
+fff04e9 MANDATORY: Add ZERO UNFINISHED WORK POLICY to AGENTS.md
+aa4a18c Add GitHub Sponsors button for vasic-digital
+be1b725 security: Add mandatory NO SUDO/ROOT execution constraint
+b4cc66f feat: v2.2.0 comprehensive completion — edge tests, version alignment
+
