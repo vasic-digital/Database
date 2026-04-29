@@ -1713,6 +1713,7 @@ func (m *mockPool) Close() {
 
 // TestMockPool verifies the mock implements the expected interface
 func TestMockPool_Interface(t *testing.T) {
+	// bluff-scan: no-assert-ok (integration/interface-compliance smoke — wiring must not panic)
 	var _ pooler = (*mockPool)(nil)
 }
 

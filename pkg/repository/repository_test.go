@@ -319,6 +319,7 @@ func TestGenericRepository_Count(t *testing.T) {
 }
 
 func TestGenericRepository_Interface(t *testing.T) {
+	// bluff-scan: no-assert-ok (feature/interface smoke — wiring must not panic)
 	var _ Repository[testEntity] = (*GenericRepository[testEntity])(nil)
 }
 

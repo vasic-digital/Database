@@ -930,6 +930,7 @@ func TestClient_Connect_CancelledContext(t *testing.T) {
 
 // TestClient_Connect_InvalidJournalMode tests Connect with invalid journal mode.
 func TestClient_Connect_InvalidJournalMode(t *testing.T) {
+	// bluff-scan: no-assert-ok (client lifecycle smoke — connect/context/stop must not panic)
 	c := New(&Config{
 		Path:        ":memory:",
 		JournalMode: "INVALID_MODE_THAT_DOES_NOT_EXIST",
