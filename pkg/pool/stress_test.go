@@ -122,6 +122,7 @@ func TestStress_GenericPool_ConcurrentAcquireRelease(t *testing.T) {
 // TestStress_GenericPool_RapidClose validates that Close after a burst
 // of in-flight Acquires does not leak goroutines or panic.
 func TestStress_GenericPool_RapidClose(t *testing.T) {
+	// bluff-scan: no-assert-ok (stress test — high-volume calls must not panic; go test -race verifies)
 	for iter := 0; iter < 5; iter++ {
 		p := newStressPool(t, 8)
 		var wg sync.WaitGroup
