@@ -1071,7 +1071,7 @@ func (m *mockTx) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row 
 }
 
 func (m *mockTx) CopyFrom(ctx context.Context, tableName pgx.Identifier, columnNames []string, rowSrc pgx.CopyFromSource) (int64, error) {
-	return 0, fmt.Errorf("not implemented")
+	return 0, fmt.Errorf("mock Tx: CopyFrom not supported in test mock")
 }
 
 func (m *mockTx) SendBatch(ctx context.Context, b *pgx.Batch) pgx.BatchResults {
@@ -1083,7 +1083,7 @@ func (m *mockTx) LargeObjects() pgx.LargeObjects {
 }
 
 func (m *mockTx) Prepare(ctx context.Context, name, sql string) (*pgconn.StatementDescription, error) {
-	return nil, fmt.Errorf("not implemented")
+	return nil, fmt.Errorf("mock Tx: Prepare not supported in test mock")
 }
 
 func (m *mockTx) Conn() *pgx.Conn {

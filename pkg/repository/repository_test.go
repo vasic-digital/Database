@@ -598,7 +598,7 @@ func (m *mockDB) QueryRow(ctx context.Context, query string, args ...any) db.Row
 	return m.queryRowRow
 }
 func (m *mockDB) Begin(ctx context.Context) (db.Tx, error) {
-	return nil, fmt.Errorf("not implemented")
+	return nil, fmt.Errorf("mock DB: Begin not supported in test mock")
 }
 func (m *mockDB) HealthCheck(ctx context.Context) error { return nil }
 
