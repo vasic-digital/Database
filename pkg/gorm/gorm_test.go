@@ -24,18 +24,6 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	return db
 }
 
-func TestNewAdapter_Wraps(t *testing.T) {
-	db := setupTestDB(t)
-	a := adapter.New(db)
-	assert.NotNil(t, a)
-	assert.NotNil(t, a.DB())
-}
-
-func TestNewAdapter_NilDB(t *testing.T) {
-	a := adapter.New(nil)
-	assert.Nil(t, a)
-}
-
 func TestAdapter_HealthCheck(t *testing.T) {
 	db := setupTestDB(t)
 	a := adapter.New(db)

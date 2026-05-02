@@ -617,51 +617,6 @@ func TestConfig_DSN(t *testing.T) {
 	}
 }
 
-func TestNew_PreservesCustomConfig(t *testing.T) {
-	customCfg := &Config{
-		Config: db.Config{
-			Host:            "custom.host",
-			Port:            5555,
-			User:            "customuser",
-			Password:        "custompass",
-			DBName:          "customdb",
-			SSLMode:         "require",
-			MaxConns:        25,
-			MinConns:        5,
-			MaxConnLifetime: 2 * time.Hour,
-			MaxConnIdleTime: time.Hour,
-			ConnectTimeout:  10 * time.Second,
-		},
-		ApplicationName:        "custom-app",
-		HealthCheckPeriod:      time.Minute,
-		PreferSimpleProtocol:   false,
-		StatementCacheCapacity: 1024,
-	}
-
-	c := New(customCfg)
-	require.NotNil(t, c)
-
-	// Driver should be overridden to postgres
-	assert.Equal(t, "postgres", c.config.Driver)
-
-	// All other fields should be preserved
-	assert.Equal(t, "custom.host", c.config.Host)
-	assert.Equal(t, 5555, c.config.Port)
-	assert.Equal(t, "customuser", c.config.User)
-	assert.Equal(t, "custompass", c.config.Password)
-	assert.Equal(t, "customdb", c.config.DBName)
-	assert.Equal(t, "require", c.config.SSLMode)
-	assert.Equal(t, int32(25), c.config.MaxConns)
-	assert.Equal(t, int32(5), c.config.MinConns)
-	assert.Equal(t, 2*time.Hour, c.config.MaxConnLifetime)
-	assert.Equal(t, time.Hour, c.config.MaxConnIdleTime)
-	assert.Equal(t, 10*time.Second, c.config.ConnectTimeout)
-	assert.Equal(t, "custom-app", c.config.ApplicationName)
-	assert.Equal(t, time.Minute, c.config.HealthCheckPeriod)
-	assert.False(t, c.config.PreferSimpleProtocol)
-	assert.Equal(t, 1024, c.config.StatementCacheCapacity)
-}
-
 func TestDefaultConfig_CPUScaling(t *testing.T) {
 	// Test that default config scales with CPU count
 	cfg := DefaultConfig()

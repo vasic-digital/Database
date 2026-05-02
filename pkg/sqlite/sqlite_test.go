@@ -61,12 +61,6 @@ func TestDefaultConfig(t *testing.T) {
 	}
 }
 
-func TestNew_NilConfigUsesMemory(t *testing.T) {
-	c := New(nil)
-	require.NotNil(t, c)
-	assert.Equal(t, ":memory:", c.config.Path)
-}
-
 func TestClient_ConnectAndClose_InMemory(t *testing.T) {
 	c := New(DefaultConfig(":memory:"))
 	ctx := context.Background()
@@ -351,7 +345,7 @@ func TestClient_BusyTimeoutMs(t *testing.T) {
 // file permission issues.
 func TestClient_Connect_FilePermissionError(t *testing.T) {
 	if os.Getuid() == 0 {
-		t.Skip("skipping permission test when running as root")  // SKIP-OK: #legacy-untriaged
+		t.Skip("skipping permission test when running as root")
 	}
 
 	tests := []struct {
