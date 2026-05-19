@@ -1,0 +1,22 @@
+# challenges/fixtures/en.yaml
+#
+# English labels the Database Challenge runner uses when describing the
+# SQLite driver round-trip. Round-244 deliverable — exists so the parent
+# project's CONST-046 i18n posture stays demonstrable at the Challenge
+# output layer without coupling production code to any language.
+#
+# Locale: en (English).
+
+locale: en
+describe:
+  banner: "Database driver describe — SQLite (pure Go, no CGO)"
+  connect_ok: "connected to in-memory SQLite database"
+  migrate_ok: "applied %d migration(s); schema_migrations table populated"
+  insert_ok: "inserted user '%s' with row id %d"
+  query_ok: "queried user id %d, got name '%s'"
+  count_ok: "users table currently holds %d row(s)"
+  pass: "PROBE PASS — Database adapter round-trip honest end-to-end"
+errors:
+  no_rows: "row missing after INSERT — adapter swallowed the write (CONST-035 bluff)"
+  wrong_name: "row present but name mismatch — adapter scrambled the payload"
+  wrong_count: "count mismatch — adapter under-/over-reported persisted rows"

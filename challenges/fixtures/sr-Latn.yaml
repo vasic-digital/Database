@@ -1,0 +1,22 @@
+# challenges/fixtures/sr-Latn.yaml
+#
+# Serbian (Latin script) labels the Database Challenge runner uses when
+# describing the SQLite driver round-trip. Round-244 deliverable —
+# bilingual companion to en.yaml proving the locale boundary is honest
+# (CONST-046 i18n posture demonstrable at Challenge-output layer).
+#
+# Locale: sr-Latn (Serbian Latin script).
+
+locale: sr-Latn
+describe:
+  banner: "Opis drajvera baze podataka — SQLite (čist Go, bez CGO)"
+  connect_ok: "uspostavljena veza sa SQLite bazom u memoriji"
+  migrate_ok: "primenjeno %d migracija; tabela schema_migrations popunjena"
+  insert_ok: "ubacen korisnik '%s' sa id reda %d"
+  query_ok: "pročitan korisnik id %d, dobijeno ime '%s'"
+  count_ok: "tabela users trenutno sadrži %d red(ova)"
+  pass: "PROVERA USPEŠNA — adapter Database radi pošteno od kraja do kraja"
+errors:
+  no_rows: "red nedostaje posle INSERT — adapter je progutao upis (CONST-035 blef)"
+  wrong_name: "red postoji ali ime se ne poklapa — adapter je iskrivio podatke"
+  wrong_count: "broj redova se ne poklapa — adapter je pogrešno izveštavao"
